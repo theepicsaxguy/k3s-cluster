@@ -1,0 +1,37 @@
+---
+kured_vars:
+  kubernetes:
+    configuration:
+      concurrency: 1
+      period: 15m
+      reboot_delay: 60s
+      slack:
+        enabled: true
+        messages:
+          enabled: false
+          drain: ''
+          reboot: ''
+          uncordon: ''
+        # -- (string) Slack notifications, see [documentation](https://kured.dev/docs/configuration/#notifications) for details
+        # @default -- Set value into [all.yaml](../../inventory/cluster/group_vars/all.yaml) `credentials` collection
+        notify_url:
+      time:
+        start: '04:00'
+        end: '08:00'
+        zone: UTC
+    helm:
+      chart:
+        name: kured
+        version: v5.6.0
+      repository:
+        name: charts
+        org: kubereboot
+        url: https://kubereboot.github.io
+    namespace: kube-system
+    resources:
+      limits:
+        cpu: null
+        memory: 128Mi
+      requests:
+        cpu: 10m
+        memory: 128Mi

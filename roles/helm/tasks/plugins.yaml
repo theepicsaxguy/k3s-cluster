@@ -1,0 +1,75 @@
+---
+- name: Remove Helm Plugins
+  notify: Restart service
+  block:
+    - name: Ensure Helm is installed
+      ansible.builtin.command: helm version
+      register: helm_check
+      ignore_errors: true
+
+    - name: Download Helm install script
+      ansible.builtin.get_url:
+        url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+        dest: /tmp/get-helm-3
+        mode: '0755'
+      when: helm_check.failed
+
+    - name: Install Helm if missing
+      ansible.builtin.command: /tmp/get-helm-3
+      when: helm_check.failed
+
+    - name: Ensure Helm is in PATH (persistently)
+      ansible.builtin.lineinfile:
+        path: /etc/environment
+        line: 'PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"'
+        state: present
+
+    - name: Export PATH in the current session
+      ansible.builtin.shell: |
+        set -o pipefail
+        if ! echo $PATH | grep -q "/usr/local/bin"; then
+          export PATH="/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: false
+      when: ansible_env.PATH is not search("/usr/local/bin")
+
+    - name: Remove plugins
+      kubernetes.core.helm_plugin:
+        plugin_name: '{{ item.name }}'
+        state: absent
+      loop: '{{ helm_vars.plugins }}'
+
+    - name: Remove plugin packages
+      ansible.builtin.apt:
+        name: '{{ item }}'
+        state: absent
+        autoremove: true
+        clean: true
+        purge: true
+      loop: '{{ helm_plugin_packages_disabled | default([]) }}'
+
+- name: Install Helm Plugins
+  block:
+    - name: Install plugin packages
+      ansible.builtin.apt:
+        name: '{{ item }}'
+        state: present
+        autoremove: true
+        update_cache: true
+      loop: '{{ helm_plugin_packages | default([]) }}'
+
+    - name: Install plugins
+      kubernetes.core.helm_plugin:
+        plugin_path: '{{ item.repository.url }}'
+        plugin_version: '{{ item.version }}'
+      loop: '{{ helm_vars.plugins }}'
+      register: result
+      delay: 1
+      retries: 3
+      until: result is not failed
+      loop_control:
+        label: '{{ item.name }}'
+      when: item.enabled | bool
+      check_mode: false

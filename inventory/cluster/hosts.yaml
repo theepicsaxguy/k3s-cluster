@@ -1,0 +1,16 @@
+server:
+  hosts:
+    k3sM1:
+    k3sM2:
+    k3sM3:
+
+agent:
+  hosts:
+    k3sA1:
+    k3sA2:
+    k3sA3:
+
+cluster:
+  children:
+    server:
+    agent:

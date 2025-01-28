@@ -1,0 +1,46 @@
+---
+cluster_vars:
+  device:
+    # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/server/#storage-devices), for details
+    enabled: false
+    # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/server/#deviceid), for details
+    id: '2:2'
+    # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/server/#devicename), for details
+    name: 'ASMedia Technology'
+  hardware:
+    # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/server/#hardwarearchitecture), for details
+    architecture: x86_64
+    # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/server/#hardwareproduct), for details
+    product: 'PnP device PNP0b00'
+  service:
+    bluetooth:
+      # -- By default, related `apt` packages are not installed
+      enabled: false
+    cloud_init:
+      enabled: true
+    postfix:
+      enabled: false
+      protocols: ipv4
+      relay:
+        # -- iCloud mail server relay host
+        host: smtp.mail.me.com
+        port: 587
+      # -- (string) Postfix user credentials, set at global level
+      # @default -- Set values into [all.yaml](../../inventory/cluster/group_vars/all.yaml) `credentials` collection
+      user:
+    snapd:
+      enabled: false
+    unattended_upgrades:
+      # -- See [documentation](https://help.ubuntu.com/community/AutomaticSecurityUpdates), for details
+      enabled: false
+      # -- Available options are `always`, `on-change` and `only-on-error`
+      mail_report: only-on-error
+      remove_deps: 'true'
+    wifi:
+      # -- By default, related `apt` packages are not installed
+      enabled: false
+  ssh:
+    # -- See [documentation](https://axivo.com/k3s-cluster/wiki/guide/configuration/user/#ssh-key), for details
+    key: id_ed25519.pub
+    # -- Full path to `.ssh` directory, a hardcoded value can be used
+    path: "{{ lookup('ansible.builtin.env', 'HOME') + '/.ssh' }}"

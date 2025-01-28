@@ -1,0 +1,117 @@
+---
+- name: Role Facts
+  ansible.builtin.import_tasks:
+    file: facts.yaml
+
+- name: Role Reset
+  block:
+    - name: Loadbalancer Reset
+      when:
+        - ansible_host in k3s_map.loadbalancer.hosts
+        - prompt_remove_packages in ['y', 'Y']
+      block:
+        - name: Remove loadbalancer packages
+          ansible.builtin.apt:
+            name: '{{ item }}'
+            state: absent
+            autoremove: true
+            clean: true
+            purge: true
+          loop:
+            - haproxy
+            - keepalived
+          when: item in ansible_facts.packages
+
+        - name: Remove loadbalancer configuration files
+          ansible.builtin.file:
+            path: '{{ item }}'
+            state: absent
+          loop:
+            - /etc/keepalived
+            - /etc/sysctl.d/90-ip-nonlocal-bind.conf
+
+    - name: Stop service
+      ansible.builtin.assert:
+        quiet: true
+        that: true
+      changed_when: true
+      notify:
+        - Stop service
+        - Reboot
+
+    - name: Flush handlers
+      ansible.builtin.meta: flush_handlers
+
+    - name: Remove cluster files
+      ansible.builtin.shell: |
+        set -eo pipefail
+        if [[ -d {{ item }} ]]; then
+          for process in $(ps -eo pid= -o args= | grep {{ item }} | grep -v grep | tr -s ' ' | cut -d ' ' -f 2); do
+            kill -KILL $process
+          done
+          for mount in $(grep {{ item }} /proc/self/mounts | cut -d ' ' -f 2); do
+            umount -f $mount
+          done
+          for type in c s p l f d; do
+            find {{ item }} -type $type -delete
+          done
+        fi
+      args:
+        executable: /bin/bash
+      changed_when: result.rc == 0
+      loop:
+        - /var/lib/cni
+        - /var/lib/kubelet
+        - /var/lib/rancher
+      register: result
+
+    - name: Server Reset
+      when: ansible_host in k3s_map.server.hosts
+      block:
+        - name: Remove server files
+          ansible.builtin.file:
+            path: '{{ item }}'
+            state: absent
+          loop:
+            - '{{ k3s_map.node.directory.bin }}/{{ k3s_vars.release.kubepug.name }}'
+
+        - name: Remove variable from environment file
+          ansible.builtin.lineinfile:
+            path: /etc/environment
+            line: KUBECONFIG={{ k3s_project.cluster.kubeconfig }}
+            regexp: ^KUBECONFIG
+            state: absent
+
+    - name: Remove generic files
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: absent
+      loop:
+        - '{{ k3s_project.node.binary }}'
+        - '{{ k3s_map.node.directory.bin }}/crictl'
+        - '{{ k3s_map.node.directory.bin }}/ctr'
+        - '{{ k3s_map.node.directory.bin }}/kubectl'
+        - '{{ k3s_map.node.directory.config }}'
+        - /etc/systemd/system/{{ k3s_map.service.name }}.service
+        - /etc/systemd/system/{{ k3s_map.service.name }}.service.env
+
+    - name: Remove local kubeconfig files
+      ansible.builtin.file:
+        path: '{{ k3s_vars.cluster.kubeconfig.path }}/{{ item }}'
+        state: absent
+      delegate_to: localhost
+      loop:
+        - cache
+        - config
+        - http-cache
+      when: k3s_vars.cluster.kubeconfig.local is truthy
+      become: false
+      run_once: true
+
+    - name: Reset systemd
+      ansible.builtin.command:
+        cmd: systemctl '{{ item }}' # noqa command-instead-of-module
+      changed_when: true
+      loop:
+        - daemon-reload
+        - reset-failed

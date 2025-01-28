@@ -1,0 +1,108 @@
+- name: Role Validation
+  ansible.builtin.import_tasks:
+    file: validation.yaml
+  any_errors_fatal: true
+
+- name: Role Provisioning
+  notify:
+    - Start k3s service
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Role Configuration
+  ansible.builtin.import_tasks:
+    file: configuration.yaml
+
+- name: Server Configuration
+  block:
+    - name: Set server configuration postinstall fact
+      ansible.builtin.set_fact:
+        k3s_config_postinstall: true
+
+    - name: Update server configuration file
+      ansible.builtin.template:
+        src: config.j2
+        dest: "{{ k3s_project.cluster.config }}"
+        owner: root
+        group: root
+        mode: '600'
+=======
+---
+- name: Role Validation
+  ansible.builtin.import_tasks:
+    file: validation.yaml
+  any_errors_fatal: true
+
+- name: Role Provisioning
+  block:
+    - name: Download k3s binary
+      ansible.builtin.get_url:
+        url: "https://github.com/k3s-io/k3s/releases/download/{{ k3s_vars.release.k3s.version }}/k3s"
+        checksum: "sha256:https://github.com/k3s-io/k3s/releases/download/{{ k3s_vars.release.k3s.version }}/sha256sum-amd64.txt"
+        dest: /usr/local/bin/k3s
+        owner: root
+        group: root
+        mode: "0755"
+      retries: 3
+      delay: 1
+      register: install_k3s
+      until: install_k3s.failed == false
+
+    - name: Create configuration directory
+      ansible.builtin.file:
+        path: "{{ k3s_map.node.directory.config }}"
+        state: directory
+        owner: root
+        group: root
+        mode: "0755"
+
+    - name: Create configuration file
+      ansible.builtin.template:
+        src: config.j2
+        dest: "{{ k3s_project.cluster.config }}"
+        owner: root
+        group: root
+        mode: "0600"
+
+    - name: Create service file
+      ansible.builtin.template:
+        src: service.j2
+        dest: "/etc/systemd/system/{{ k3s_map.service.name }}.service"
+        owner: root
+        group: root
+        mode: "0644"
+
+    - name: Create service environment file
+      ansible.builtin.file:
+        path: "/etc/systemd/system/{{ k3s_map.service.name }}.service.env"
+        state: touch
+        owner: root
+        group: root
+        mode: "0600"
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers
+
+- name: Role Configuration
+  ansible.builtin.import_tasks:
+    file: configuration.yaml
+
+- name: Server Configuration
+  when: ansible_host in k3s_map.server.hosts
+  notify:
+    - Restart k3s service
+  block:
+    - name: Update server configuration file
+      ansible.builtin.template:
+        src: config.j2
+        dest: "{{ k3s_project.cluster.config }}"
+        owner: root
+        group: root
+        mode: "0600"
+      when: k3s_config_postinstall
+
+  when: ansible_host in k3s_map.server.hosts
+  notify:
+    - Restart k3s service
+>>>>>>> Stashed changes

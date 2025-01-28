@@ -1,0 +1,69 @@
+---
+- name: Set map fact
+  ansible.builtin.set_fact:
+    cilium_map:
+      ca:
+        hubble:
+          certificate:
+            common:
+              name: hubble-common-certs
+            root:
+              name: hubble-root-certs
+          cluster:
+            issuer:
+              name: hubble-cluster-issuer
+      helm:
+        chart:
+          reference: '{{ cilium_vars.kubernetes.helm.repository.org }}/{{ cilium_vars.kubernetes.helm.chart.name }}'
+        repository:
+          name: '{{ cilium_vars.kubernetes.helm.repository.org }}/{{ cilium_vars.kubernetes.helm.repository.name }}'
+          url: '{{ cilium_vars.kubernetes.helm.repository.url }}'
+        timeout: 5m0s
+      gateway:
+        hubble:
+          ui:
+            annotations:
+              cert-manager.io/cluster-issuer: '{{ externaldns_project.cloudflare.cluster.issuer }}'
+            hostname: '{{ cilium_vars.kubernetes.hubble.ui.gateway.subdomain }}.{{ externaldns_vars.cloudflare.host.domain }}'
+            http_route:
+              insecure: '{{ cilium_vars.kubernetes.hubble.ui.gateway.service }}-http'
+              secure: '{{ cilium_vars.kubernetes.hubble.ui.gateway.service }}-https'
+      metrics:
+        service:
+          monitor:
+            enabled: true
+            scrape:
+              # If `null`, default value is `victoriametrics_map.service.monitor.scrape.interval`
+              interval: 15s
+      release:
+        cli:
+          url: https://github.com/{{ cilium_vars.release.cli.repository.org }}/{{ cilium_vars.release.cli.repository.name }}/releases
+        gateway_api:
+          url: https://github.com/{{ cilium_vars.release.gateway_api.repository.org }}/{{ cilium_vars.release.gateway_api.repository.name }}/releases
+        hubble:
+          url: https://github.com/{{ cilium_vars.release.hubble.repository.org }}/{{ cilium_vars.release.hubble.repository.name }}/releases
+  run_once: true
+
+- name: Set project fact
+  ansible.builtin.set_fact:
+    cilium_project:
+      release:
+        cli:
+          file: '{{ cilium_map.release.cli.url }}/download/{{ cilium_vars.release.cli.version }}/{{ cilium_vars.release.cli.file }}'
+        gateway_api:
+          file: '{{ cilium_map.release.gateway_api.url }}/download/{{ cilium_vars.release.gateway_api.version }}/{{ cilium_vars.release.gateway_api.file }}'
+        hubble:
+          file: '{{ cilium_map.release.hubble.url }}/download/{{ cilium_vars.release.hubble.version }}/{{ cilium_vars.release.hubble.file }}'
+      tag: '{{ cilium_vars.kubernetes.helm.chart.version }}'
+      url: https://github.com/{{ cilium_map.helm.repository.name }}/releases/tag
+  run_once: true
+
+- name: Set resources fact
+  ansible.builtin.set_fact:
+    cilium_resources:
+      release:
+        - file: '{{ cilium_vars.release.cli.file }}'
+          url: '{{ cilium_project.release.cli.file }}'
+        - file: '{{ cilium_vars.release.hubble.file }}'
+          url: '{{ cilium_project.release.hubble.file }}'
+  run_once: true

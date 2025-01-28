@@ -1,0 +1,80 @@
+global:
+  leaderElection:
+    namespace: {{ certmanager_vars.kubernetes.namespace }}
+  logLevel: {{ certmanager_vars.kubernetes.global.log_level }}
+cainjector:
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+  resources:
+    limits:
+{% if certmanager_vars.kubernetes.cainjector.resources.limits.cpu is truthy %}
+      cpu: {{ certmanager_vars.kubernetes.cainjector.resources.limits.cpu }}
+{% endif %}
+      memory: {{ certmanager_vars.kubernetes.cainjector.resources.limits.memory }}
+    requests:
+      cpu: {{ certmanager_vars.kubernetes.cainjector.resources.requests.cpu }}
+      memory: {{ certmanager_vars.kubernetes.cainjector.resources.requests.memory }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+crds:
+  enabled: true
+  keep: false
+extraArgs:
+  - --enable-gateway-api
+podDisruptionBudget:
+  enabled: true
+  maxUnavailable: 1
+{% if certmanager_postinstall is truthy and certmanager_map.metrics.service.monitor.enabled is truthy %}
+prometheus:
+  servicemonitor:
+    enabled: true
+{% if certmanager_map.metrics.service.monitor.scrape.interval is falsy %}
+    interval: {{ victoriametrics_map.service.monitor.scrape.interval }}
+{% else %}
+    interval: {{ certmanager_map.metrics.service.monitor.scrape.interval }}
+{% endif %}
+    namespace: {{ victoriametrics_vars.kubernetes.namespace }}
+{% if certmanager_map.metrics.service.monitor.scrape.timeout is falsy %}
+    scrapeTimeout: {{ victoriametrics_map.service.monitor.scrape.timeout }}
+{% else %}
+    scrapeTimeout: {{ certmanager_map.metrics.service.monitor.scrape.timeout }}
+{% endif %}
+{% endif %}
+resources:
+  limits:
+{% if certmanager_vars.kubernetes.controller.resources.limits.cpu is truthy %}
+    cpu: {{ certmanager_vars.kubernetes.controller.resources.limits.cpu }}
+{% endif %}
+    memory: {{ certmanager_vars.kubernetes.controller.resources.limits.memory }}
+  requests:
+    cpu: {{ certmanager_vars.kubernetes.controller.resources.requests.cpu }}
+    memory: {{ certmanager_vars.kubernetes.controller.resources.requests.memory }}
+replicaCount: {{ certmanager_vars.kubernetes.controller.replicas }}
+strategy:
+  rollingUpdate:
+    maxSurge: 1
+    maxUnavailable: 0
+  type: RollingUpdate
+webhook:
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+  replicaCount: {{ certmanager_vars.kubernetes.webhook.replicas }}
+  resources:
+    limits:
+{% if certmanager_vars.kubernetes.webhook.resources.limits.cpu is truthy %}
+      cpu: {{ certmanager_vars.kubernetes.webhook.resources.limits.cpu }}
+{% endif %}
+      memory: {{ certmanager_vars.kubernetes.webhook.resources.limits.memory }}
+    requests:
+      cpu: {{ certmanager_vars.kubernetes.webhook.resources.requests.cpu }}
+      memory: {{ certmanager_vars.kubernetes.webhook.resources.requests.memory }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate

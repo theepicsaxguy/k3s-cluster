@@ -1,0 +1,42 @@
+---
+- name: Set map fact
+  ansible.builtin.set_fact:
+    certmanager_map:
+      ca:
+        cluster:
+          issuer:
+            name: '{{ certmanager_vars.kubernetes.helm.chart.name }}-cluster-issuer'
+      helm:
+        chart:
+          reference: '{{ certmanager_vars.kubernetes.helm.repository.org }}/{{ certmanager_vars.kubernetes.helm.chart.name }}'
+        repository:
+          name: '{{ certmanager_vars.kubernetes.helm.repository.name }}/{{ certmanager_vars.kubernetes.helm.chart.name }}'
+          url: '{{ certmanager_vars.kubernetes.helm.repository.url }}/{{ certmanager_vars.kubernetes.helm.repository.name }}'
+        timeout: 5m0s
+      metrics:
+        service:
+          monitor:
+            enabled: true
+            scrape:
+              # If `null`, default value is `victoriametrics_map.service.monitor.scrape.interval`
+              interval: null
+              # If `null`, default value is `victoriametrics_map.service.monitor.scrape.timeout`
+              timeout: null
+      release:
+        url: 'https://github.com/{{ certmanager_vars.release.repository.org }}/{{ certmanager_vars.release.repository.name }}/releases'
+  run_once: true
+
+- name: Set project fact
+  ansible.builtin.set_fact:
+    certmanager_project:
+      release:
+        checksum: '{{ certmanager_map.release.url }}/download/{{ certmanager_vars.release.version }}/{{ certmanager_vars.release.checksum }}'
+        file: '{{ certmanager_map.release.url }}/download/{{ certmanager_vars.release.version }}/{{ certmanager_vars.release.file }}'
+      tag: '{{ certmanager_vars.kubernetes.helm.chart.version }}'
+      url: 'https://github.com/{{ certmanager_map.helm.repository.name }}/releases/tag'
+  run_once: true
+
+- name: Set variables fact
+  ansible.builtin.set_fact:
+    certmanager_vars: '{{ certmanager_vars }}'
+  run_once: true

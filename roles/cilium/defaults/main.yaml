@@ -1,0 +1,157 @@
+---
+cilium_vars:
+  kubernetes:
+    agent:
+      resources:
+        limits:
+          cpu: null
+          memory: 256Mi
+        requests:
+          cpu: 10m
+          memory: 256Mi
+    bpf:
+      clock_probe: true
+      datapath_mode: netkit
+      external_access: false
+      masquerade: true
+      tproxy: true
+      # -- `1` for Longhorn CIFS backup, `4` for Cilium IP pool
+      vlan_bypass_ids:
+        - 1
+        - 4
+    cgroup:
+      resources:
+        limits:
+          cpu: null
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 128Mi
+    client:
+      rate_limit:
+        burst: 100
+        qps: 50
+    cni:
+      resources:
+        limits:
+          cpu: null
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 128Mi
+    envoy:
+      resources:
+        limits:
+          cpu: null
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 128Mi
+    helm:
+      chart:
+        name: cilium
+        version: v1.16.5
+      repository:
+        name: cilium
+        org: cilium
+        url: https://helm.cilium.io
+    hubble:
+      relay:
+        replicas: 2
+        resources:
+          limits:
+            cpu: null
+            memory: 128Mi
+          requests:
+            cpu: 10m
+            memory: 128Mi
+        retry_timeout: 10s
+      ui:
+        enabled: true
+        backend:
+          resources:
+            limits:
+              cpu: null
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 128Mi
+        frontend:
+          resources:
+            limits:
+              cpu: null
+              memory: 128Mi
+            requests:
+              cpu: 10m
+              memory: 128Mi
+        gateway:
+          service: hubble-ui
+          # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details
+          subdomain: hubble
+        # -- Related to [cilium/cilium#33109](https://github.com/cilium/cilium/issues/33109)
+        replicas: 1
+      tls:
+        auto:
+          # -- Available options are `certmanager` and `helm`
+          method: certmanager
+    ingress_controller:
+      service:
+        # -- Assign the `CiliumLoadBalancerIPPool` blocks start address
+        ip: 10.25.150.20
+    ip_masq_agent:
+      enabled: false
+      non_masquerade_cidrs:
+        - 10.0.0.0/8
+        - 192.168.0.0/16
+    ipam:
+      operator:
+        cluster_pool: 10.42.0.0/16
+    kube_proxy:
+      bind:
+        address: 0.0.0.0
+        port: 10256
+    loadbalancer:
+      algorithm: maglev
+      ip_pool:
+        blocks:
+          # -- `CiliumLoadBalancerIPPool` blocks start address
+          start: 10.25.150.20
+          # -- `CiliumLoadBalancerIPPool` blocks stop address
+          stop: 10.25.150.100
+        name: cilium-ip-pool
+      l2_announcement_policy:
+        name: cilium-l2-announcement-policy
+      table_size: 16381
+    log_options:
+      # -- Available options are `INFO`, `WARNING`, `ERROR` and `FATAL`
+      level: WARNING
+    namespace: kube-system
+    operator:
+      resources:
+        limits:
+          cpu: null
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 128Mi
+  release:
+    cli:
+      file: cilium-linux-amd64.tar.gz
+      repository:
+        name: cilium-cli
+        org: cilium
+      version: v0.16.23
+    gateway_api:
+      # -- See Cilium [documentation](https://docs.cilium.io/en/stable/network/servicemesh/gateway-api/gateway-api/),
+      # for implementation details
+      file: experimental-install.yaml
+      repository:
+        name: gateway-api
+        org: kubernetes-sigs
+      version: v1.2.1
+    hubble:
+      file: hubble-linux-amd64.tar.gz
+      repository:
+        name: hubble
+        org: cilium
+      version: v1.16.5

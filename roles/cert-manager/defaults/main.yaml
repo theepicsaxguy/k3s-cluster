@@ -1,0 +1,47 @@
+---
+certmanager_vars:
+  kubernetes:
+    cainjector:
+      resources:
+        limits:
+          cpu: null
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 128Mi
+    controller:
+      replicas: 2
+      resources:
+        limits:
+          cpu: null
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 128Mi
+    helm:
+      chart:
+        name: cert-manager
+        version: v1.16.3
+      repository:
+        name: cert-manager
+        org: jetstack
+        url: https://charts.jetstack.io
+    global:
+      log_level: 2
+    namespace: kube-system
+    webhook:
+      replicas: 1
+      resources:
+        limits:
+          cpu: null
+          memory: 128Mi
+        requests:
+          cpu: 10m
+          memory: 128Mi
+  release:
+    checksum: checksums.txt
+    file: amd64
+    repository:
+      name: cmctl
+      org: cert-manager
+    version: v2.1.1

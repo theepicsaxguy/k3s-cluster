@@ -1,0 +1,72 @@
+---
+- name: Role Facts
+  ansible.builtin.include_role:
+    name: '{{ item }}'
+    tasks_from: facts
+  loop:
+    - helm
+    - k3s
+
+- name: Role Reset
+  when: ansible_host in k3s_map.server.hosts
+  block:
+    - name: Remove plugins
+      kubernetes.core.helm_plugin:
+        plugin_name: '{{ item.name }}'
+        state: absent
+      loop: '{{ helm_vars.plugins }}'
+      when:
+        - "'helm' in ansible_facts.packages"
+        - "'python3-kubernetes' in ansible_facts.packages"
+
+    - name: Remove Packages
+      when: prompt_remove_packages in ['y', 'Y']
+      block:
+        - name: Remove plugin packages
+          ansible.builtin.apt:
+            name: '{{ item.packages }}'
+            state: absent
+            autoremove: true
+            clean: true
+            purge: true
+          loop: '{{ helm_vars.plugins }}'
+          when: item.packages is defined
+
+        - name: Remove packages
+          ansible.builtin.apt:
+            name: '{{ item }}'
+            state: absent
+            autoremove: true
+            clean: true
+            purge: true
+          loop:
+            - apt-transport-https
+            - helm
+            - python3-kubernetes
+
+        - name: Remove configuration files
+          ansible.builtin.file:
+            path: '{{ item }}'
+            state: absent
+          loop:
+            - '{{ helm_map.directory.share }}'
+            - /etc/apt/sources.list.d/helm-{{ helm_vars.release.repository.channel }}.sources
+            - /etc/systemd/system/helm-cache.service
+            - /etc/systemd/system/helm-cache.timer
+            - /usr/share/keyrings/{{ helm_vars.release.key }}
+
+        - name: Reset systemd
+          ansible.builtin.command:
+            cmd: systemctl '{{ item }}' # noqa command-instead-of-module
+          changed_when: true
+          loop:
+            - daemon-reload
+            - reset-failed
+
+    - name: Remove variables from environment file
+      ansible.builtin.lineinfile:
+        path: /etc/environment
+        line: '{{ item.key }}={{ item.value }}'
+        regexp: ^{{ item.key }}
+        state: absent
+      loop: "{{ lookup('ansible.builtin.dict', helm_project.environment | combine(helm_vars.environment)) }}"

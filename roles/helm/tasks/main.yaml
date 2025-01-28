@@ -1,0 +1,117 @@
+---
+- name: Role Facts
+  ansible.builtin.import_role:
+    name: k3s
+    tasks_from: facts
+
+- name: Role Validation
+  ansible.builtin.import_tasks:
+    file: validation.yaml
+
+- name: Role Provisioning
+  when: ansible_host in k3s_map.server.hosts
+  block:
+    - name: Install packages
+      ansible.builtin.apt:
+        name: "{{ item }}"
+        autoremove: true
+        update_cache: true
+      loop:
+        - apt-transport-https
+        - python3-kubernetes
+        - gnupg
+        - git
+
+    - name: Add variables to environment file
+      ansible.builtin.lineinfile:
+        path: /etc/environment
+        line: "{{ item.key }}={{ item.value }}"
+        regexp: ^{{ item.key }}
+      loop: "{{ lookup('ansible.builtin.dict', helm_project.environment | combine(helm_vars.environment)) | sort(attribute='key')
+        }}"
+
+    - name: Initialize variables
+      ansible.builtin.shell: |
+        set -eo pipefail
+        source /etc/environment
+      args:
+        executable: /bin/bash
+      changed_when: true
+
+    - name: Get file status
+      ansible.builtin.stat:
+        path: /usr/share/keyrings/{{ helm_vars.release.key }}
+      changed_when: not gpg_key.stat.exists
+      register: gpg_key
+
+    - name: Helm Package
+      when: not gpg_key.stat.exists
+      block:
+        - name: Download key
+          ansible.builtin.get_url:
+            url: "{{  helm_map.release.key }}"
+            dest: /tmp/{{ helm_vars.release.repository.key }}
+            owner: root
+            group: root
+            mode: "644"
+          register: result
+          delay: 1
+          retries: 3
+          until: result is not failed
+
+        - name: Dearmor key
+          ansible.builtin.command:
+            cmd: gpg --dearmor -o /usr/share/keyrings/{{ helm_vars.release.key }} /tmp/{{ helm_vars.release.repository.key
+              }}
+          changed_when: dearmor_key.rc == 0
+          register: dearmor_key
+
+        - name: Remove key
+          ansible.builtin.file:
+            path: /tmp/{{ helm_vars.release.repository.key }}
+            state: absent
+
+        - name: Get architecture
+          ansible.builtin.command:
+            cmd: dpkg --print-architecture
+          changed_when: false
+          register: architecture
+
+        - name: Download Helm installation script
+          ansible.builtin.get_url:
+            url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+            dest: /tmp/get_helm.sh
+            mode: "700"
+
+        - name: Run Helm installation script
+          ansible.builtin.command:
+            cmd: /tmp/get_helm.sh
+            creates: /usr/local/bin/helm
+
+        - name: Remove Helm installation script
+          ansible.builtin.file:
+            path: /tmp/get_helm.sh
+            state: absent
+
+    - name: Helm Cache
+      notify: Start service
+      block:
+        - name: Create service file
+          ansible.builtin.template:
+            src: service.j2
+            dest: /etc/systemd/system/helm-cache.service
+            owner: root
+            group: root
+            mode: "644"
+
+        - name: Create service timer file
+          ansible.builtin.template:
+            src: timer.j2
+            dest: /etc/systemd/system/helm-cache.timer
+            owner: root
+            group: root
+            mode: "644"
+
+    - name: Helm Plugins
+      ansible.builtin.import_tasks:
+        file: plugins.yaml

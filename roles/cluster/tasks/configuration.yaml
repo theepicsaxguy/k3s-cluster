@@ -1,0 +1,291 @@
+---
+# - name: Hardware Configuration
+#   notify: Reboot
+#   block:
+    # - name: PnP Device Configuration
+    #   when: cluster_vars.hardware.product | lower == 'pnp device pnp0b00'
+    #   block:
+    #     - name: Set service facts
+    #       ansible.builtin.service_facts:
+
+    #     - name: Bluetooth Configuration
+    #       when: not cluster_vars.service.bluetooth.enabled
+    #       block:
+    #         - name: Disable bluetooth service
+    #           ansible.builtin.systemd:
+    #             name: bluetooth.service
+    #             state: stopped
+    #             enabled: false
+    #           when: ansible_facts.services['bluetooth.service'] is defined
+
+    #         - name: Disable hciuart service
+    #           ansible.builtin.systemd:
+    #             name: hciuart.service
+    #             state: stopped
+    #             enabled: false
+    #           when: ansible_facts.services['hciuart.service'] is defined
+
+    #     - name: WiFi Configuration
+    #       when: not cluster_vars.service.wifi.enabled
+    #       block:
+    #         - name: Disable wifi service
+    #           ansible.builtin.systemd:
+    #             name: wpa_supplicant.service
+    #             state: stopped
+    #             enabled: false
+    #           when: ansible_facts.services['wpa_supplicant.service'] is defined
+
+    #     - name: Create firmware purge configuration
+    #       ansible.builtin.copy:
+    #         content: |
+    #           DPkg::Post-Invoke {"/usr/bin/find /boot/firmware -type f -name '*.bak' -delete 2>/dev/null || true";};
+    #         dest: /etc/apt/apt.conf.d/90rpi-firmware-purge
+    #         owner: root
+    #         group: root
+    #         mode: '0644'
+    #         enabled: false
+
+    # - name: USB Device Configuration
+    #   when: cluster_vars.device.enabled
+    #   block:
+    #     - name: Set device id
+    #       ansible.builtin.command: lsusb -s {{ cluster_vars.device.id }}
+    #       changed_when: false
+    #       register: device_id
+
+    #     - name: Device Trim
+    #       when: "'{{ cluster_vars.device.name }}' in device_id.stdout"
+    #       block:
+    #         - name: Set device attributes fact
+    #           ansible.builtin.set_fact:
+    #             device_attributes: "{{ device_id.stdout | regex_search('ID\\s+(\\S+)\\s+' + cluster_vars.device.name) | default('') | trim | split(':') }}"
+
+    #         - name: Device Rule Setup
+    #           when:
+    #             - device_attributes is iterable
+    #             - device_attributes | length == 2
+    #           block:
+    #             - name: Set device rule fact
+    #               ansible.builtin.set_fact:
+    #                 device_rule: >
+    #                   ACTION=="add|change",
+    #                   ATTRS{idVendor}=="{{ device_attributes[0] }}",
+    #                   ATTRS{idProduct}=="{{ device_attributes[1] }}",
+    #                   SUBSYSTEM=="scsi_disk",
+    #                   ATTR{provisioning_mode}="unmap"
+
+    #             - name: Create device rule
+    #               ansible.builtin.lineinfile:
+    #                 path: /etc/udev/rules.d/10-unmap.fstrim.rules
+    #                 line: "{{ device_rule }}"
+    #                 regexp: '^ACTION'
+    #                 owner: root
+    #                 group: root
+    #                 mode: '0644'
+    #                 create: yes
+
+    # - name: Mounted Filesystem
+    #   block:
+    #     - name: Start fstrim.timer service
+    #       ansible.builtin.systemd:
+    #         name: fstrim.timer
+    #         state: started
+    #         enabled: true
+
+    #     - name: Discard unused blocks on mounted filesystem
+    #       ansible.builtin.command: fstrim -vA
+    #       changed_when: "'trimmed' in command.stdout"
+    #       register: command
+
+- name: OS Configuration
+  block:
+    - name: Get host fqdn
+      ansible.builtin.command: hostname --fqdn
+      changed_when: false
+      register: host_fqdn
+
+    - name: Get host all fqdns
+      ansible.builtin.command: hostname --all-fqdns
+      changed_when: false
+      register: host_all_fqdns
+
+    - name: Set cluster host fact
+      ansible.builtin.set_fact:
+        cluster_host:
+          extension: "{{ host_all_fqdns.stdout.split()[0].split('.')[-1] | default('local') }}"
+          fqdn: "{{ host_all_fqdns.stdout.split()[0] }}"
+          ipv4: "{{ ansible_default_ipv4.address }}"
+          name: "{{ ansible_host }}"
+
+    - name: Set host fqdn in /etc/hosts
+      ansible.builtin.replace:
+        path: /etc/hosts
+        regexp: "^127\\.0\\.1\\.1\\s+.+\\s+{{ cluster_host.name }}$"
+        replace: "127.0.1.1 {{ cluster_host.fqdn }} {{ cluster_host.name }}"
+      notify: Reboot
+      when: host_fqdn.stdout != cluster_host.fqdn
+
+    - name: Set root full name
+      ansible.builtin.command: chfn -f "{{ cluster_host.name }}" root
+      changed_when: false
+
+    - name: Disable access time updates in /etc/fstab
+      ansible.builtin.replace:
+        path: /etc/fstab
+        regexp: "defaults\\t0"
+        replace: "defaults,noatime\t0"
+      notify: Reboot
+
+    - name: Install cifs utilities package
+      ansible.builtin.apt:
+        name: cifs-utils
+        state: present
+        update_cache: true
+        autoremove: true
+
+    - name: Load kernel modules
+      ansible.builtin.copy:
+        content: |
+          br_netfilter
+          overlay
+        dest: /etc/modules-load.d/kubernetes.conf
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Reboot
+
+#     - name: Unattended Upgrades
+#       when: cluster_vars.service.unattended_upgrades.enabled
+#       block:
+#         - name: Install history notification package
+#           ansible.builtin.apt:
+#             name: apt-listchanges
+#             state: present
+#             update_cache: true
+#             autoremove: true
+
+#         - name: Update unattended upgrades configuration
+#           ansible.builtin.replace:
+#             path: /etc/apt/apt.conf.d/50unattended-upgrades
+#             regexp: "{{ item.regexp }}"
+#             replace: "{{ item.replace }}"
+#           loop:
+#             - regexp: '^(.*"\${distro_id}:\${distro_codename}-updates";)$'
+#               replace: '\1'
+#             - regexp: '^(Unattended-Upgrade::Mail)\s+.*;$'
+#               replace: '\1 "{{ global_map.credentials.cluster.postfix.user.alias }}";'
+#             - regexp: '^(Unattended-Upgrade::MailReport)\s+.*;$'
+#               replace: '\1 "{{ cluster_vars.service.unattended_upgrades.mail_report }}";'
+#             - regexp: '^(Unattended-Upgrade::Remove-Unused-Dependencies)\s+.*;$'
+#               replace: '\1 "{{ cluster_vars.service.unattended_upgrades.remove_deps }}";'
+
+# - name: Mail Configuration
+#   notify: Reload mail service
+#   when: cluster_vars.service.postfix.enabled
+#   block:
+#     - name: Set mail configuration
+#       ansible.builtin.debconf:
+#         name: postfix
+#         question: "postfix/{{ item.question }}"
+#         value: "{{ item.value }}"
+#         vtype: "{{ item.vtype }}"
+#       when: item.enabled
+#       loop:
+#         - question: main_mailer_type
+#           value: 'Satellite system'
+#           vtype: select
+#           enabled: true
+#         - question: mailname
+#           value: "{{ cluster_host.fqdn }}"
+#           vtype: string
+#           enabled: true
+#         - question: relayhost
+#           value: "[{{ cluster_vars.service.postfix.relay.host }}]:{{ cluster_vars.service.postfix.relay.port }}"
+#           vtype: string
+#           enabled: true
+#         - question: root_address
+#           value: "root@{{ cluster_host.fqdn }}"
+#           vtype: string
+#           enabled: true
+#         - question: destinations
+#           value: "$myhostname, {{ cluster_host.name }}, localhost.{{ cluster_host.extension }}, localhost"
+#           vtype: string
+#           enabled: false
+#         - question: chattr
+#           value: 'true'
+#           vtype: boolean
+#           enabled: true
+#         - question: mynetworks
+#           value: "127.0.0.1/32, 127.0.1.1/32, {{ cluster_host.ipv4 }}/32"
+#           vtype: string
+#           enabled: true
+#         - question: recipient_delim
+#           value: '+'
+#           vtype: string
+#           enabled: false
+#         - question: mailbox_limit
+#           value: '51200000'
+#           vtype: string
+#           enabled: true
+#         - question: protocols
+#           value: "{{ cluster_vars.service.postfix.protocols }}"
+#           vtype: select
+#           enabled: true
+
+#     - name: Install mail package
+#       ansible.builtin.apt:
+#         name: bsd-mailx
+#         state: present
+#         update_cache: true
+#         autoremove: true
+#       environment:
+#         DEBIAN_FRONTEND: noninteractive
+
+#     - name: Create generic map
+#       ansible.builtin.copy:
+#         content: "root@{{ cluster_host.fqdn }} {{ global_map.credentials.cluster.postfix.user.alias }}\n"
+#         dest: /etc/postfix/generic
+#         owner: root
+#         group: root
+#         mode: '0600'
+
+#     - name: Set sasl password fact
+#       ansible.builtin.set_fact:
+#         sasl_password: "{{ '[{{ cluster_vars.service.postfix.relay.host }}]:{{ cluster_vars.service.postfix.relay.port }} {{ global_map.credentials.cluster.postfix.user.name }}:{{ global_map.credentials.cluster.postfix.user.password }}' }}"
+
+#     - name: Create sasl password map
+#       ansible.builtin.copy:
+#         content: "{{ sasl_password }}\n"
+#         dest: /etc/postfix/sasl/password
+#         owner: root
+#         group: root
+#         mode: '0600'
+
+#     - name: Initialize map database
+#       ansible.builtin.command: postmap {{ item }}
+#       changed_when: false
+#       loop:
+#         - /etc/postfix/generic
+#         - /etc/postfix/sasl/password
+
+#     - name: Set map file permissions
+#       ansible.builtin.file:
+#         path: "{{ item }}"
+#         owner: root
+#         group: root
+#         mode: '0600'
+#       loop:
+#         - /etc/postfix/generic.db
+#         - /etc/postfix/sasl/password.db
+
+#     - name: Update mail configuration
+#       ansible.builtin.command: postconf -e "{{ item.name }} = {{ item.value }}"
+#       changed_when: true
+#       loop:
+#         - { name: mydestination, value: "$myhostname, {{ cluster_host.name }}, localhost.{{ cluster_host.extension }}, localhost" }
+#         - { name: smtp_generic_maps, value: "hash:/etc/postfix/generic" }
+#         - { name: smtp_sasl_auth_enable, value: "yes" }
+#         - { name: smtp_sasl_password_maps, value: "hash:/etc/postfix/sasl/password" }
+#         - { name: smtp_sasl_security_options, value: "noanonymous" }
+#         - { name: smtp_tls_CAfile, value: "/etc/ssl/certs/ca-certificates.crt" }
+#         - { name: smtp_tls_security_level, value: "encrypt" }

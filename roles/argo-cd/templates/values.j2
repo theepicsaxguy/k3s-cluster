@@ -1,0 +1,311 @@
+global:
+  deploymentStrategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+{% if externaldns_vars.cloudflare.host.domain | lower != 'disabled' %}
+  domain: {{ argocd_map.gateway.server.hostname }}
+{% endif %}
+  logging:
+    level: {{ argocd_vars.kubernetes.global.logging.level }}
+applicationSet:
+{% if argocd_postinstall is truthy and argocd_map.metrics.service.monitor.enabled is truthy %}
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+{% if argocd_map.metrics.service.monitor.scrape.interval is falsy %}
+      interval: {{ victoriametrics_map.service.monitor.scrape.interval }}
+{% else %}
+      interval: {{ argocd_map.metrics.service.monitor.scrape.interval }}
+{% endif %}
+      namespace: {{ victoriametrics_vars.kubernetes.namespace }}
+{% if argocd_map.metrics.service.monitor.scrape.timeout is falsy %}
+      scrapeTimeout: {{ victoriametrics_map.service.monitor.scrape.timeout }}
+{% else %}
+      scrapeTimeout: {{ argocd_map.metrics.service.monitor.scrape.timeout }}
+{% endif %}
+{% endif %}
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  resources:
+    limits:
+{% if argocd_vars.kubernetes.application_set.resources.limits.cpu is truthy %}
+      cpu: {{ argocd_vars.kubernetes.application_set.resources.limits.cpu }}
+{% endif %}
+      memory: {{ argocd_vars.kubernetes.application_set.resources.limits.memory }}
+    requests:
+      cpu: {{ argocd_vars.kubernetes.application_set.resources.requests.cpu }}
+      memory: {{ argocd_vars.kubernetes.application_set.resources.requests.memory }}
+  replicas: {{ argocd_vars.kubernetes.application_set.replicas }}
+configs:
+  cm:
+{% for user in argocd_resources.server.users %}
+    {{ '.'.join(['accounts', user.name]) | indent(4) }}: {{ user.permissions }}
+    {{ '.'.join(['accounts', user.name, 'enabled']) | indent(4) }}: '{{ user.enabled | lower }}'
+{% endfor %}
+    {{ lookup('ansible.builtin.template', 'config_cm.j2') | trim | indent(4) }}
+  params:
+    {{ lookup('ansible.builtin.template', 'config_params.j2') | trim | indent(4) }}
+  rbac:
+    {{ lookup('ansible.builtin.template', 'config_rbac.j2') | trim | indent(4) }}
+  secret:
+    argocdServerAdminPassword: {{ argocd_map.credentials.server.admin.password }}
+controller:
+  dynamicClusterDistribution: {{ argocd_vars.kubernetes.controller.dynamic_cluster_distribution.enabled | lower }}
+{% if argocd_postinstall is truthy and argocd_map.metrics.service.monitor.enabled is truthy %}
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+{% if argocd_map.metrics.service.monitor.scrape.interval is falsy %}
+      interval: {{ victoriametrics_map.service.monitor.scrape.interval }}
+{% else %}
+      interval: {{ argocd_map.metrics.service.monitor.scrape.interval }}
+{% endif %}
+      namespace: {{ victoriametrics_vars.kubernetes.namespace }}
+{% if argocd_map.metrics.service.monitor.scrape.timeout is falsy %}
+      scrapeTimeout: {{ victoriametrics_map.service.monitor.scrape.timeout }}
+{% else %}
+      scrapeTimeout: {{ argocd_map.metrics.service.monitor.scrape.timeout }}
+{% endif %}
+{% endif %}
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  resources:
+    limits:
+{% if argocd_vars.kubernetes.controller.resources.limits.cpu is truthy %}
+      cpu: {{ argocd_vars.kubernetes.controller.resources.limits.cpu }}
+{% endif %}
+      memory: {{ argocd_vars.kubernetes.controller.resources.limits.memory }}
+    requests:
+      cpu: {{ argocd_vars.kubernetes.controller.resources.requests.cpu }}
+      memory: {{ argocd_vars.kubernetes.controller.resources.requests.memory }}
+  replicas: {{ argocd_vars.kubernetes.controller.replicas }}
+dex:
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  resources:
+    limits:
+{% if argocd_vars.kubernetes.dex.resources.limits.cpu is truthy %}
+      cpu: {{ argocd_vars.kubernetes.dex.resources.limits.cpu }}
+{% endif %}
+      memory: {{ argocd_vars.kubernetes.dex.resources.limits.memory }}
+    requests:
+      cpu: {{ argocd_vars.kubernetes.dex.resources.requests.cpu }}
+      memory: {{ argocd_vars.kubernetes.dex.resources.requests.memory }}
+notifications:
+{% if argocd_postinstall is truthy and argocd_map.metrics.service.monitor.enabled is truthy %}
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+{% if argocd_map.metrics.service.monitor.scrape.interval is falsy %}
+      interval: {{ victoriametrics_map.service.monitor.scrape.interval }}
+{% else %}
+      interval: {{ argocd_map.metrics.service.monitor.scrape.interval }}
+{% endif %}
+      namespace: {{ victoriametrics_vars.kubernetes.namespace }}
+{% if argocd_map.metrics.service.monitor.scrape.timeout is falsy %}
+      scrapeTimeout: {{ victoriametrics_map.service.monitor.scrape.timeout }}
+{% else %}
+      scrapeTimeout: {{ argocd_map.metrics.service.monitor.scrape.timeout }}
+{% endif %}
+{% endif %}
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  resources:
+    limits:
+{% if argocd_vars.kubernetes.notifications.resources.limits.cpu is truthy %}
+      cpu: {{ argocd_vars.kubernetes.notifications.resources.limits.cpu }}
+{% endif %}
+      memory: {{ argocd_vars.kubernetes.notifications.resources.limits.memory }}
+    requests:
+      cpu: {{ argocd_vars.kubernetes.notifications.resources.requests.cpu }}
+      memory: {{ argocd_vars.kubernetes.notifications.resources.requests.memory }}
+{% if argocd_vars.kubernetes.redis.ha.enabled and k3s_map.agent.ha %}
+redis:
+  enabled: false
+redis-ha:
+  enabled: true
+  podDisruptionBudget:
+    maxUnavailable: 1
+  haproxy:
+{% if argocd_postinstall is truthy and argocd_map.metrics.service.monitor.enabled is truthy %}
+    metrics:
+      serviceMonitor:
+        enabled: true
+{% if argocd_map.metrics.service.monitor.scrape.interval is falsy %}
+        interval: {{ victoriametrics_map.service.monitor.scrape.interval }}
+{% else %}
+        interval: {{ argocd_map.metrics.service.monitor.scrape.interval }}
+{% endif %}
+        namespace: {{ victoriametrics_vars.kubernetes.namespace }}
+{% if argocd_map.metrics.service.monitor.scrape.timeout is falsy %}
+        timeout: {{ victoriametrics_map.service.monitor.scrape.timeout }}
+{% else %}
+        timeout: {{ argocd_map.metrics.service.monitor.scrape.timeout }}
+{% endif %}
+{% endif %}
+    resources:
+      limits:
+{% if argocd_vars.kubernetes.haproxy.resources.limits.cpu is truthy %}
+        cpu: {{ argocd_vars.kubernetes.haproxy.resources.limits.cpu }}
+{% endif %}
+        memory: {{ argocd_vars.kubernetes.haproxy.resources.limits.memory }}
+      requests:
+        cpu: {{ argocd_vars.kubernetes.haproxy.resources.requests.cpu }}
+        memory: {{ argocd_vars.kubernetes.haproxy.resources.requests.memory }}
+{% if argocd_vars.kubernetes.redis.ha.storage.enabled is truthy %}
+  persistentVolume:
+    enabled: true
+    storageClass: {{ argocd_vars.kubernetes.redis.ha.storage.class }}
+    accessModes:
+      {{ argocd_vars.kubernetes.redis.ha.storage.access_modes | to_nice_yaml | indent(6) }}
+    size: {{ argocd_vars.kubernetes.redis.ha.storage.size }}
+{% endif %}
+  redis:
+    resources:
+      limits:
+{% if argocd_vars.kubernetes.redis.resources.limits.cpu is truthy %}
+        cpu: {{ argocd_vars.kubernetes.redis.resources.limits.cpu }}
+{% endif %}
+        memory: {{ argocd_vars.kubernetes.redis.resources.limits.memory }}
+      requests:
+        cpu: {{ argocd_vars.kubernetes.redis.resources.requests.cpu }}
+        memory: {{ argocd_vars.kubernetes.redis.resources.requests.memory }}
+{% else %}
+redis:
+{% if argocd_postinstall is truthy and argocd_map.metrics.service.monitor.enabled is truthy %}
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+{% if argocd_map.metrics.service.monitor.scrape.interval is falsy %}
+      interval: {{ victoriametrics_map.service.monitor.scrape.interval }}
+{% else %}
+      interval: {{ argocd_map.metrics.service.monitor.scrape.interval }}
+{% endif %}
+      namespace: {{ victoriametrics_vars.kubernetes.namespace }}
+{% if argocd_map.metrics.service.monitor.scrape.timeout is falsy %}
+      scrapeTimeout: {{ victoriametrics_map.service.monitor.scrape.timeout }}
+{% else %}
+      scrapeTimeout: {{ argocd_map.metrics.service.monitor.scrape.timeout }}
+{% endif %}
+{% endif %}
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  resources:
+    limits:
+{% if argocd_vars.kubernetes.redis.resources.limits.cpu is truthy %}
+      cpu: {{ argocd_vars.kubernetes.redis.resources.limits.cpu }}
+{% endif %}
+      memory: {{ argocd_vars.kubernetes.redis.resources.limits.memory }}
+    requests:
+      cpu: {{ argocd_vars.kubernetes.redis.resources.requests.cpu }}
+      memory: {{ argocd_vars.kubernetes.redis.resources.requests.memory }}
+{% endif %}
+repoServer:
+{% if argocd_vars.kubernetes.repo_server.autoscaling.enabled is truthy %}
+  autoscaling:
+    enabled: true
+    maxReplicas: {{ argocd_vars.kubernetes.repo_server.autoscaling.max_replicas }}
+    minReplicas: {{ argocd_vars.kubernetes.repo_server.autoscaling.min_replicas }}
+    targetCPUUtilizationPercentage: {{ argocd_vars.kubernetes.repo_server.autoscaling.target.utilization_percentage.cpu }}
+    targetMemoryUtilizationPercentage: {{ argocd_vars.kubernetes.repo_server.autoscaling.target.utilization_percentage.memory }}
+{% else %}
+  replicas: {{ argocd_vars.kubernetes.repo_server.autoscaling.min_replicas }}
+{% endif %}
+{% if argocd_postinstall is truthy and argocd_map.metrics.service.monitor.enabled is truthy %}
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+{% if argocd_map.metrics.service.monitor.scrape.interval is falsy %}
+      interval: {{ victoriametrics_map.service.monitor.scrape.interval }}
+{% else %}
+      interval: {{ argocd_map.metrics.service.monitor.scrape.interval }}
+{% endif %}
+      namespace: {{ victoriametrics_vars.kubernetes.namespace }}
+{% if argocd_map.metrics.service.monitor.scrape.timeout is falsy %}
+      scrapeTimeout: {{ victoriametrics_map.service.monitor.scrape.timeout }}
+{% else %}
+      scrapeTimeout: {{ argocd_map.metrics.service.monitor.scrape.timeout }}
+{% endif %}
+{% endif %}
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  resources:
+    limits:
+{% if argocd_vars.kubernetes.repo_server.resources.limits.cpu is truthy %}
+      cpu: {{ argocd_vars.kubernetes.repo_server.resources.limits.cpu }}
+{% endif %}
+      memory: {{ argocd_vars.kubernetes.repo_server.resources.limits.memory }}
+    requests:
+      cpu: {{ argocd_vars.kubernetes.repo_server.resources.requests.cpu }}
+      memory: {{ argocd_vars.kubernetes.repo_server.resources.requests.memory }}
+server:
+{% if argocd_vars.kubernetes.server.autoscaling.enabled is truthy %}
+  autoscaling:
+    enabled: true
+    maxReplicas: {{ argocd_vars.kubernetes.server.autoscaling.max_replicas }}
+    minReplicas: {{ argocd_vars.kubernetes.server.autoscaling.min_replicas }}
+    targetCPUUtilizationPercentage: {{ argocd_vars.kubernetes.server.autoscaling.target.utilization_percentage.cpu }}
+    targetMemoryUtilizationPercentage: {{ argocd_vars.kubernetes.server.autoscaling.target.utilization_percentage.memory }}
+{% else %}
+  replicas: {{ argocd_vars.kubernetes.server.autoscaling.min_replicas }}
+{% endif %}
+{% if argocd_vars.kubernetes.configs.params.server.insecure is falsy and externaldns_vars.cloudflare.host.domain | lower != 'disabled' %}
+  certificate:
+    enabled: true
+    issuer:
+      group: cert-manager.io
+      kind: ClusterIssuer
+      name: {{ certmanager_map.ca.cluster.issuer.name }}
+    privateKey:
+      rotationPolicy: Always
+  ingress:
+    annotations:
+{% for key, value in argocd_map.ingress.server.annotations.items() %}
+      {{ key | indent(6) }}: {{ value }}
+{% endfor %}
+    enabled: true
+    ingressClassName: {{ argocd_map.ingress.class.name }}
+    tls: true
+{% endif %}
+{% if argocd_postinstall is truthy and argocd_map.metrics.service.monitor.enabled is truthy %}
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+{% if argocd_map.metrics.service.monitor.scrape.interval is falsy %}
+      interval: {{ victoriametrics_map.service.monitor.scrape.interval }}
+{% else %}
+      interval: {{ argocd_map.metrics.service.monitor.scrape.interval }}
+{% endif %}
+      namespace: {{ victoriametrics_vars.kubernetes.namespace }}
+{% if argocd_map.metrics.service.monitor.scrape.timeout is falsy %}
+      scrapeTimeout: {{ victoriametrics_map.service.monitor.scrape.timeout }}
+{% else %}
+      scrapeTimeout: {{ argocd_map.metrics.service.monitor.scrape.timeout }}
+{% endif %}
+{% endif %}
+  pdb:
+    enabled: true
+    maxUnavailable: 1
+  resources:
+    limits:
+{% if argocd_vars.kubernetes.server.resources.limits.cpu is truthy %}
+      cpu: {{ argocd_vars.kubernetes.server.resources.limits.cpu }}
+{% endif %}
+      memory: {{ argocd_vars.kubernetes.server.resources.limits.memory }}
+    requests:
+      cpu: {{ argocd_vars.kubernetes.server.resources.requests.cpu }}
+      memory: {{ argocd_vars.kubernetes.server.resources.requests.memory }}

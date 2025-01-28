@@ -1,0 +1,30 @@
+---
+- name: Cluster Upgrade
+  hosts: cluster
+  become: true
+  gather_facts: true
+  tasks:
+    - name: Role Upgrade
+      ansible.builtin.include_role:
+        apply:
+          tags: '{{ upgrade }}'
+        name: '{{ upgrade }}'
+        tasks_from: upgrade
+      loop:
+        - argo-cd
+        - cert-manager
+        - cilium
+        - cluster
+        - coredns
+        - external-dns
+        - helm
+        - k3s
+        - kured
+        - longhorn
+        - metrics-server
+        - victoria-logs
+        - victoria-metrics
+      loop_control:
+        loop_var: upgrade
+      tags: always
+      when: (upgrade in ansible_run_tags)

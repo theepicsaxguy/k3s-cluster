@@ -1,0 +1,36 @@
+---
+longhorn_vars:
+  kubernetes:
+    default_settings:
+      backup:
+        enabled: true
+        # -- See [documentation](https://longhorn.io/docs/latest/references/settings/#backup-target), for details
+        target: cifs://192.168.1.8/backup
+      # -- See [documentation](https://longhorn.io/docs/latest/references/settings/#allow-collecting-longhorn-usage-metrics), for details
+      collect_usage_metrics: false
+      # -- See [documentation](https://longhorn.io/docs/latest/references/settings/#allow-collecting-longhorn-usage-metrics), for details
+      data_locality: strict-local
+      log_level: Warn
+      # -- See [documentation](https://longhorn.io/docs/latest/references/settings/#node-drain-policy), for details
+      node_drain_policy: block-for-eviction
+      # -- See [documentation](https://longhorn.io/docs/latest/references/settings/#pod-deletion-policy-when-node-is-down), for details
+      pod_deletion_policy: delete-both-statefulset-and-deployment-pod
+      volume:
+        # -- See [documentation](https://longhorn.io/docs/latest/references/settings/#replica-auto-balance), for details
+        replica_auto_balance: least-effort
+        # -- See [documentation](https://longhorn.io/docs/latest/references/settings/#default-replica-count), for details
+        replicas: 2
+    frontend:
+      gateway:
+        service: longhorn-frontend
+        # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details
+        subdomain: longhorn
+    helm:
+      chart:
+        name: longhorn
+        version: v1.7.2
+      repository:
+        name: longhorn
+        org: longhorn
+        url: https://charts.longhorn.io
+    namespace: kube-system

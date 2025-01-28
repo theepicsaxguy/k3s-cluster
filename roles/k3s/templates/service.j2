@@ -1,0 +1,24 @@
+[Unit]
+Description=Lightweight Kubernetes {{ k3s_node.service | capitalize }}
+Documentation=https://k3s.io
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=notify
+Delegate=yes
+EnvironmentFile=-/etc/default/%N
+EnvironmentFile=-/etc/systemd/system/{{ k3s_map.service.name }}.service.env
+ExecStart={{ k3s_project.node.binary }} {{ k3s_node.service }}{{ ' --debug' if k3s_vars.service.debug }}
+ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=process
+LimitCORE=infinity
+LimitNOFILE=infinity
+LimitNPROC=infinity
+TasksMax=infinity
+TimeoutStartSec=0
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

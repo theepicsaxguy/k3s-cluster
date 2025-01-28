@@ -1,0 +1,22 @@
+---
+- name: Role Validation
+  ansible.builtin.import_tasks:
+    file: validation.yaml
+
+- name: User Configuration
+  ansible.builtin.import_tasks:
+    file: user.yaml
+
+- name: Cluster Provisioning
+  when: valid_hardware_product is truthy
+  block:
+    - name: Cluster Configuration
+      ansible.builtin.import_tasks:
+        file: configuration.yaml
+
+    - name: Cluster Upgrade
+      ansible.builtin.import_tasks:
+        file: upgrade.yaml
+
+- name: Flush handlers
+  ansible.builtin.meta: flush_handlers

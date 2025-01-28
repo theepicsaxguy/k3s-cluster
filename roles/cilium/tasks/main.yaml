@@ -1,0 +1,194 @@
+---
+- name: Role Validation
+  ansible.builtin.import_tasks:
+    file: validation.yaml
+  any_errors_fatal: true
+
+- name: Role Provisioning
+  when: ansible_host in k3s_map.server.hosts
+  block:
+    - name: Validate service state
+      ansible.builtin.wait_for:
+        port: '{{ k3s_vars.server.api.port }}'
+        state: drained
+        timeout: 30
+      any_errors_fatal: true
+
+    - name: Download archive
+      ansible.builtin.get_url:
+        url: '{{ item.url }}'
+        checksum: sha256:{{ item.url }}.sha256sum
+        dest: /tmp
+        owner: root
+        group: root
+        mode: '644'
+      loop: '{{ cilium_resources.release }}'
+      register: result
+      delay: 1
+      retries: 3
+      until: result is not failed
+      check_mode: false
+
+    - name: Install binary
+      ansible.builtin.unarchive:
+        src: /tmp/{{ item.file }}
+        dest: '{{ k3s_map.node.directory.bin }}'
+        owner: root
+        group: root
+        mode: '755'
+        remote_src: true
+      loop: '{{ cilium_resources.release }}'
+
+    - name: Remove archive
+      ansible.builtin.file:
+        path: /tmp/{{ item.file }}
+        state: absent
+      loop: '{{ cilium_resources.release }}'
+      check_mode: false
+
+    - name: Add repository
+      kubernetes.core.helm_repository:
+        name: '{{ cilium_vars.kubernetes.helm.repository.org }}'
+        repo_url: '{{ cilium_map.helm.repository.url }}'
+
+    - name: Chart Setup
+      run_once: true
+      block:
+        - name: Apply gateway api crds manifest
+          kubernetes.core.k8s:
+            kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+            src: '{{ cilium_project.release.gateway_api.file }}'
+
+        - name: Set chart setup fact
+          ansible.builtin.set_fact:
+            cilium_setup: true
+
+        - name: Set chart postinstall fact
+          ansible.builtin.set_fact:
+            cilium_postinstall: false
+
+        - name: Get secret info
+          kubernetes.core.k8s_info:
+            kind: Secret
+            kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+            name: hubble-server-certs
+            namespace: '{{ cilium_vars.kubernetes.namespace }}'
+            wait_timeout: 10
+            wait: true
+          register: secret
+          no_log: true
+
+        - name: Set secret metadata
+          kubernetes.core.k8s:
+            definition:
+              metadata:
+                annotations:
+                  meta.helm.sh/release-name: '{{ cilium_vars.kubernetes.helm.chart.name }}'
+                  meta.helm.sh/release-namespace: '{{ cilium_vars.kubernetes.namespace }}'
+                labels:
+                  app.kubernetes.io/managed-by: Helm
+            kind: Secret
+            kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+            name: '{{ item }}'
+            namespace: '{{ cilium_vars.kubernetes.namespace }}'
+            state: patched
+            wait: true
+          loop:
+            - hubble-relay-client-certs
+            - hubble-server-certs
+          when:
+            - secret.resources is iterable
+            - secret.resources | length > 0
+
+        - name: Install chart
+          kubernetes.core.helm:
+            chart_ref: '{{ cilium_map.helm.chart.reference }}'
+            chart_version: '{{ cilium_vars.kubernetes.helm.chart.version }}'
+            kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+            name: '{{ cilium_vars.kubernetes.helm.chart.name }}'
+            namespace: '{{ cilium_vars.kubernetes.namespace }}'
+            timeout: '{{ cilium_map.helm.timeout }}'
+            values: "{{ lookup('ansible.builtin.template', 'values.j2') | from_yaml }}"
+            create_namespace: true
+            update_repo_cache: true
+            wait: true
+          register: result
+          delay: 1
+          retries: 3
+          until: result is not failed
+
+        - name: Reset secret metadata
+          kubernetes.core.k8s:
+            definition:
+              metadata:
+                annotations:
+                  meta.helm.sh/release-name: null
+                  meta.helm.sh/release-namespace: null
+                labels:
+                  app.kubernetes.io/managed-by: null
+            kind: Secret
+            kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+            name: '{{ item }}'
+            namespace: '{{ cilium_vars.kubernetes.namespace }}'
+            state: patched
+            wait: true
+          loop:
+            - hubble-relay-client-certs
+            - hubble-server-certs
+          when:
+            - secret.resources is iterable
+            - secret.resources | length > 0
+
+        - name: Create l2 announcement policy
+          kubernetes.core.k8s:
+            definition: "{{ lookup('ansible.builtin.template', 'l2_announcement_policy.j2') | from_yaml }}"
+            kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+            wait: true
+
+        - name: Create loadbalancer ip pool
+          kubernetes.core.k8s:
+            definition: "{{ lookup('ansible.builtin.template', 'loadbalancer_ip_pool.j2') | from_yaml }}"
+            kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+            wait: true
+
+        - name: Update chart setup fact
+          ansible.builtin.set_fact:
+            cilium_setup: false
+
+        - name: Update chart setup values
+          kubernetes.core.helm:
+            chart_ref: '{{ cilium_map.helm.chart.reference }}'
+            chart_version: '{{ cilium_vars.kubernetes.helm.chart.version }}'
+            kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+            name: '{{ cilium_vars.kubernetes.helm.chart.name }}'
+            namespace: '{{ cilium_vars.kubernetes.namespace }}'
+            values: "{{ lookup('ansible.builtin.template', 'values.j2') | from_yaml }}"
+            reset_values: false
+            reuse_values: true
+            update_repo_cache: true
+            wait: true
+          register: result
+          delay: 1
+          retries: 3
+          until: result is not failed
+
+        - name: Gateway Setup
+          when: externaldns_vars.cloudflare.host.domain | lower != 'disabled'
+          block:
+            - name: Create gateway
+              kubernetes.core.k8s:
+                definition: "{{ lookup('ansible.builtin.template', 'gateway.j2') | from_yaml }}"
+                kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+                wait: true
+
+            - name: Create insecure http route
+              kubernetes.core.k8s:
+                definition: "{{ lookup('ansible.builtin.template', 'http_route_insecure.j2') | from_yaml }}"
+                kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+                wait: true
+
+            - name: Create secure http route
+              kubernetes.core.k8s:
+                definition: "{{ lookup('ansible.builtin.template', 'http_route_secure.j2') | from_yaml }}"
+                kubeconfig: '{{ k3s_project.cluster.kubeconfig }}'
+                wait: true
