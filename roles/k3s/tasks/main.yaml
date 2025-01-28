@@ -18,6 +18,11 @@
       register: install_k3s
       until: install_k3s.failed == false
 
+    - name: Set default value for k3s_config_postinstall
+      ansible.builtin.set_fact:
+        k3s_config_postinstall: false
+      when: k3s_config_postinstall is not defined
+      
     - name: Create configuration directory
       ansible.builtin.file:
         path: "{{ k3s_map.node.directory.config }}"
