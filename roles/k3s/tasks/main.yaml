@@ -4,37 +4,6 @@
   any_errors_fatal: true
 
 - name: Role Provisioning
-  notify:
-    - Start k3s service
-
-- name: Flush handlers
-  ansible.builtin.meta: flush_handlers
-
-- name: Role Configuration
-  ansible.builtin.import_tasks:
-    file: configuration.yaml
-
-- name: Server Configuration
-  block:
-    - name: Set server configuration postinstall fact
-      ansible.builtin.set_fact:
-        k3s_config_postinstall: true
-
-    - name: Update server configuration file
-      ansible.builtin.template:
-        src: config.j2
-        dest: "{{ k3s_project.cluster.config }}"
-        owner: root
-        group: root
-        mode: '600'
-=======
----
-- name: Role Validation
-  ansible.builtin.import_tasks:
-    file: validation.yaml
-  any_errors_fatal: true
-
-- name: Role Provisioning
   block:
     - name: Download k3s binary
       ansible.builtin.get_url:
@@ -49,6 +18,11 @@
       register: install_k3s
       until: install_k3s.failed == false
 
+    - name: Set default value for k3s_config_postinstall
+      ansible.builtin.set_fact:
+        k3s_config_postinstall: false
+      when: k3s_config_postinstall is not defined
+      
     - name: Create configuration directory
       ansible.builtin.file:
         path: "{{ k3s_map.node.directory.config }}"
@@ -101,8 +75,3 @@
         group: root
         mode: "0600"
       when: k3s_config_postinstall
-
-  when: ansible_host in k3s_map.server.hosts
-  notify:
-    - Restart k3s service
->>>>>>> Stashed changes
