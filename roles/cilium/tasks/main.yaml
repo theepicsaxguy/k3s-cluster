@@ -113,8 +113,8 @@
             update_repo_cache: true
             wait: true
           register: result
-          delay: 1
-          retries: 3
+          delay: 10
+          retries: 10
           until: result is not failed
 
         - name: Reset secret metadata
