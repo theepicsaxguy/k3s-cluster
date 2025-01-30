@@ -20,3 +20,4 @@ jobs:
 
       - name: Execute Playbook in Check Mode
         run: ansible-playbook -i inventory ./provisioning.yaml --check
+
