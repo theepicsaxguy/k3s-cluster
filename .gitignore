@@ -38,4 +38,4 @@ collections/             # Ansible Galaxy collections (if downloaded dynamically
 .vscode/                 # Ignore full VSCode settings if you don't want them tracked
 *.swp                    # Vim swap files
 *.swo                    # Vim swap files
-*.bak                    # Backup 
+*.bak                    # Backup files
