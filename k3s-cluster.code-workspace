@@ -83,7 +83,13 @@
             {
                 "text": "Commit messages MUST be concise, clear, and STRICTLY follow these rules. NO EXCEPTIONS."
             }
-        ]
+        ],
+        "git.fetchOnPull": true,
+        "git.pullBeforeCheckout": true,
+        "git.branchRandomName.enable": false,
+        "github.copilot.advanced": {
+            
+        }
     },
     "launch": {
         "version": "0.2.0",
