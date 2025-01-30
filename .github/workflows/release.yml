@@ -31,8 +31,7 @@ jobs:
       - name: Run standard-version
         run: npm run release
 
-      - name: Commit and push changes
+      - name: Push version changes
         run: |
-          git add .
-          git commit -m "chore(release): version bump" --no-verify
           git push --follow-tags origin main
+          git push origin --tags
