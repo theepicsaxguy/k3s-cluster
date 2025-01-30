@@ -1,0 +1,13 @@
+{
+  "devDependencies": {
+    "@commitlint/cli": "^19.6.1",
+    "@commitlint/config-conventional": "^19.6.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.4.3",
+    "standard-version": "^9.5.0"
+  },
+  "scripts": {
+    "prepare": "husky install",
+    "release": "standard-version"
+  }
+}

@@ -1,5 +1,41 @@
+# macOS system files
 **/.DS_Store
+
+# VSCode settings (keep only specific files)
 !.vscode/settings.json
 !.vscode/extensions.json
 !.vscode/tasks.json
 !.vscode/launch.json
+
+# Node.js dependencies (if applicable)
+node_modules/
+
+# Python virtual environments
+venv/
+.env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ansible-specific ignores
+*.retry                  # Ansible playbook retry files
+ansible.log              # Ansible log files
+.hosts                   # Custom inventory files
+group_vars/*.vault.yml   # Encrypted vault files
+secrets.yml              # Sensitive data files
+inventory                # Inventory files (if dynamically generated)
+ansible.cfg              # Local Ansible configuration (if machine-specific)
+collections/             # Ansible Galaxy collections (if downloaded dynamically)
+
+# Terraform (if used in infra)
+*.tfstate
+*.tfstate.backup
+.terraform/
+
+# Editor-specific files
+.idea/                   # JetBrains IDE files (PyCharm, WebStorm, etc.)
+.vscode/                 # Ignore full VSCode settings if you don't want them tracked
+*.swp                    # Vim swap files
+*.swo                    # Vim swap files
+*.bak                    # Backup 
