@@ -5,48 +5,48 @@ body:
   - type: markdown
     attributes:
       value: |
-        > [!IMPORTANT]
-        > If you have usage questions, please read first the [Wiki](https://axivo.com/k3s-cluster) and use [GitHub Discussions](https://github.com/axivo/k3s-cluster/discussions), for community support.
+        ## ⚠️ Important
+        Before requesting a feature, check the [Wiki](https://theepicsaxguy.com/k3s-cluster) and [GitHub Discussions](https://github.com/theepicsaxguy/k3s-cluster/discussions).
+
   - type: checkboxes
     attributes:
-      label: Existing Issues
-      description: Please search to see if an issue already exists for the feature request.
+      label: Existing Issues Check
       options:
-        - label: I have searched the existing issues
+        - label: I have searched for similar feature requests.
           required: true
+
   - type: textarea
     id: related-problem
     attributes:
       label: Related Problem
-      description: Is your feature request related to a problem?
-      value: "Please describe the related problem."
+      description: Is your feature request related to an existing problem?
     validations:
       required: true
+
   - type: textarea
     id: solution-implementation
     attributes:
-      label: Solution Implementation
-      description: Describe the solution you would like to see implemented.
+      label: Suggested Solution
+      description: Describe the solution you'd like.
     validations:
       required: true
+
   - type: textarea
-    id: solution-alternatives
+    id: alternatives
     attributes:
-      label: Solution Alternatives
-      description: Describe any solution alternatives you've considered.
+      label: Alternative Solutions
+      description: Have you considered other solutions?
+
   - type: textarea
     id: anything-else
     attributes:
-      label: Anything Else
-      description: |
-        Links? References? Anything that will provide more context about the feature request.
-        > [!TIP]
-        > You can attach images or log files by clicking this area to highlight it and then dragging files in.
+      label: Additional Context
+      description: Links, references, or anything else helpful.
+
   - type: checkboxes
     id: terms
     attributes:
-      label: Code of Conduct
-      description: By submitting this issue, you agree to follow our [Code of Conduct](https://github.com/axivo/k3s-cluster/blob/main/.github/CODE_OF_CONDUCT.md)
+      label: Code of Conduct Agreement
       options:
-        - label: I agree to follow project's Code of Conduct
+        - label: I agree to follow the project's Code of Conduct
           required: true

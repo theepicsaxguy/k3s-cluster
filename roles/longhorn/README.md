@@ -2,15 +2,15 @@
 
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 1.7.2](https://img.shields.io/badge/Version-1.7.2-informational?style=flat-square)
 
-The role performs various tasks related to `longhorn` [chart](https://github.com/longhorn/charts/tree/longhorn-1.7.2/charts/longhorn) deployment, reset and validation. Review the [documentation](https://axivo.com/k3s-cluster/wiki/guide/configuration/roles/longhorn), for additional details.
+The role performs various tasks related to `longhorn` [chart](https://github.com/longhorn/charts/tree/longhorn-1.7.2/charts/longhorn) deployment, reset and validation. Review the [documentation](https://theepicsaxguy.com/k3s-cluster/wiki/guide/configuration/roles/longhorn), for additional details.
 
 ## Role Variables
 
 See the related role variables listed below, defined into [main.yaml](./defaults/main.yaml) defaults file. Advanced user role variables are defined into [facts.yaml](./tasks/facts.yaml) `longhorn_map` collection.
 
 > [!TIP]
-> - Use [Renovate](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
-> - Use [Robusta KRR](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
+> - Use [Renovate](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
+> - Use [Robusta KRR](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -24,7 +24,7 @@ See the related role variables listed below, defined into [main.yaml](./defaults
 | longhorn_vars.kubernetes.default_settings.volume.replica_auto_balance | string | `"least-effort"` | See [documentation](https://longhorn.io/docs/latest/references/settings/#replica-auto-balance), for details |
 | longhorn_vars.kubernetes.default_settings.volume.replicas | int | `2` | See [documentation](https://longhorn.io/docs/latest/references/settings/#default-replica-count), for details |
 | longhorn_vars.kubernetes.frontend.gateway.service | string | `"longhorn-frontend"` |  |
-| longhorn_vars.kubernetes.frontend.gateway.subdomain | string | `"longhorn"` | See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details |
+| longhorn_vars.kubernetes.frontend.gateway.subdomain | string | `"longhorn"` | See [documentation](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details |
 | longhorn_vars.kubernetes.helm.chart.name | string | `"longhorn"` |  |
 | longhorn_vars.kubernetes.helm.chart.version | string | `"v1.7.2"` |  |
 | longhorn_vars.kubernetes.helm.repository.name | string | `"longhorn"` |  |

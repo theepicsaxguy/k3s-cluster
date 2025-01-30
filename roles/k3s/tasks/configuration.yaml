@@ -129,7 +129,7 @@
   when:
     - k3s_vars.cluster.kubeconfig.local is truthy
     - ansible_host in ['localhost', k3s_map.server.default_host]
-  no_log: true
+  no_log: false
   run_once: true
   block:
     - name: Remove local kubeconfig file if it exists
@@ -148,6 +148,15 @@
         dest: '{{ kubeconfig.path }}'
         mode: preserve
         remote_src: true
+
+    - name: Verify kubeconfig file exists
+      ansible.builtin.stat:
+        path: "{{ k3s_vars.cluster.kubeconfig.path + '/config' }}"
+      register: kubeconfig_file_stat
+
+    - name: Debug kubeconfig file existence
+      debug:
+        msg: "Kubeconfig file exists: {{ kubeconfig_file_stat.stat.exists }}"
 
     - name: Get file content
       ansible.builtin.slurp:
@@ -187,10 +196,10 @@
         path: '{{ kubeconfig.path }}'
         state: absent
 
-    - name: Set local kubeconfig file permissions
-      ansible.builtin.file:
-        path: "{{ k3s_vars.cluster.kubeconfig.path + '/config' }}"
-        mode: '600'
-        state: file
-      delegate_to: localhost
-      become: false
+    # - name: Set local kubeconfig file permissions
+    #   ansible.builtin.file:
+    #     path: "{{ k3s_vars.cluster.kubeconfig.path + '/config' }}"
+    #     mode: '600'
+    #     state: file
+    #   delegate_to: localhost
+    #   become: false

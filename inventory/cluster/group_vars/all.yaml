@@ -1,6 +1,6 @@
 ---
 ansible_user: ansibleusr
-# -- Encrypt value with [`ansible-vault`](https://axivo.com/k3s-cluster/tutorials/handbook/ansible/#vault)
+# -- Encrypt value with [`ansible-vault`](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/ansible/#vault)
 ansible_password: !vault |
   $ANSIBLE_VAULT;1.1;AES256
   37343731613165306363633231376466623130663262383638376465346264333432646433376437
@@ -8,13 +8,13 @@ ansible_password: !vault |
   38346239353135386632323732633332353231656136376565386236613861653431616563616333
   3265393765306665370a363765346435376263663234626161366535636336663339376266333033
   30353130346130386636323465366662333265373161656534323462383631623066
-ansible_become_password: '{{ ansible_password }}'
+ansible_become_password: "{{ ansible_password }}"
 global_map:
   credentials:
     argocd:
       server:
         admin:
-          # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/argocd/#credentials), for details
+          # -- See [documentation](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/argocd/#credentials), for details
           password: !vault |
             $ANSIBLE_VAULT;1.1;AES256
             37343731613165306363633231376466623130663262383638376465346264333432646433376437
@@ -24,7 +24,7 @@ global_map:
             30353130346130386636323465366662333265373161656534323462383631623066
         user:
           name: floren
-          # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/argocd/#credentials), for details
+          # -- See [documentation](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/argocd/#credentials), for details
           password: !vault |
             $ANSIBLE_VAULT;1.1;AES256
             37343731613165306363633231376466623130663262383638376465346264333432646433376437
@@ -64,7 +64,7 @@ global_map:
     externaldns:
       cloudflare:
         api:
-          # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/externaldns/#cloudflare), for details
+          # -- See [documentation](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/externaldns/#cloudflare), for details
           token: !vault |
             $ANSIBLE_VAULT;1.1;AES256
             30623263643462653831333561626333633338303063346664646663313938396339396465323365
@@ -77,7 +77,7 @@ global_map:
     kured:
       slack:
         notify:
-          # -- See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/kured/#slack), for details
+          # -- See [documentation](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/kured/#slack), for details
           url: !vault |
             $ANSIBLE_VAULT;1.1;AES256
             37343731613165306363633231376466623130663262383638376465346264333432646433376437

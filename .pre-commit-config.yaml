@@ -1,44 +1,45 @@
 ---
 repos:
-  - repo: https://github.com/axivo/k3s-cluster
+  - repo: https://github.com/theepicsaxguy/k3s-cluster
     rev: v1.0.0
     hooks:
       - id: argo-cd
-        args:
-          - --chart-search-root=./roles/argo-cd
       - id: cert-manager
-        args:
-          - --chart-search-root=./roles/cert-manager
       - id: cilium
-        args:
-          - --chart-search-root=./roles/cilium
       - id: cluster
-        args:
-          - --chart-search-root=./roles/cluster
       - id: coredns
-        args:
-          - --chart-search-root=./roles/coredns
       - id: external-dns
-        args:
-          - --chart-search-root=./roles/external-dns
       - id: helm
-        args:
-          - --chart-search-root=./roles/helm
       - id: k3s
-        args:
-          - --chart-search-root=./roles/k3s
       - id: kured
-        args:
-          - --chart-search-root=./roles/kured
       - id: longhorn
-        args:
-          - --chart-search-root=./roles/longhorn
       - id: metrics-server
-        args:
-          - --chart-search-root=./roles/metrics-server
       - id: victoria-logs-single
-        args:
-          - --chart-search-root=./roles/victoria-logs
       - id: victoria-metrics-k8s-stack
+    args: ["--chart-search-root=./roles"]
+
+  - repo: https://github.com/adrienverge/yamllint
+    rev: v1.32.0
+    hooks:
+      - id: yamllint
+        name: YAML Linter
+        types: [yaml]
         args:
-          - --chart-search-root=./roles/victoria-metrics
+          [
+            "-d",
+            "{extends: default, rules: {line-length: {max: 120}, indent: {spaces: 2}}}",
+          ]
+
+  - repo: https://github.com/instrumenta/helm-lint
+    rev: v1.0.0
+    hooks:
+      - id: helm-lint
+        name: Helm Linter
+        args: ["--strict"]
+
+  - repo: https://github.com/norwoodj/helm-docs
+    rev: v1.11.0
+    hooks:
+      - id: helm-docs
+        name: Helm Docs Generator
+        args: ["--chart-search-root=./roles"]

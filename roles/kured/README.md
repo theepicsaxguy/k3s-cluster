@@ -2,15 +2,15 @@
 
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 5.6.0](https://img.shields.io/badge/Version-5.6.0-informational?style=flat-square)
 
-The role performs various tasks related to `kured` [chart](https://github.com/kubereboot/charts/tree/kured-5.6.0/charts/kured) deployment, reset and validation. Review the [documentation](https://axivo.com/k3s-cluster/wiki/guide/configuration/roles/kured), for additional details.
+The role performs various tasks related to `kured` [chart](https://github.com/kubereboot/charts/tree/kured-5.6.0/charts/kured) deployment, reset and validation. Review the [documentation](https://theepicsaxguy.com/k3s-cluster/wiki/guide/configuration/roles/kured), for additional details.
 
 ## Role Variables
 
 See the related role variables listed below, defined into [main.yaml](./defaults/main.yaml) defaults file. Advanced user role variables are defined into [facts.yaml](./tasks/facts.yaml) `kured_map` collection.
 
 > [!TIP]
-> - Use [Renovate](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
-> - Use [Robusta KRR](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
+> - Use [Renovate](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
+> - Use [Robusta KRR](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|

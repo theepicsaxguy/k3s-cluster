@@ -23,8 +23,8 @@ See the installed role dependencies listed below, defined into [main.yaml](./def
 See the related role variables listed below, defined into [main.yaml](./defaults/main.yaml) defaults file. Advanced user role variables are defined into [facts.yaml](./tasks/facts.yaml) `argocd_map` collection.
 
 > [!TIP]
-> - Use [Renovate](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
-> - Use [Robusta KRR](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
+> - Use [Renovate](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
+> - Use [Robusta KRR](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -100,7 +100,7 @@ See the related role variables listed below, defined into [main.yaml](./defaults
 | argocd_vars.kubernetes.server.credentials.user.name | string | Set value into [all.yaml](../../inventory/cluster/group_vars/all.yaml) `credentials` collection | ArgoCD UI user name, set at global level |
 | argocd_vars.kubernetes.server.credentials.user.password | string | Set value into [all.yaml](../../inventory/cluster/group_vars/all.yaml) `credentials` collection | ArgoCD UI user password, set at global level |
 | argocd_vars.kubernetes.server.gateway.service | string | `"argo-cd-argocd-server"` |  |
-| argocd_vars.kubernetes.server.gateway.subdomain | string | `"argocd"` | See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details |
+| argocd_vars.kubernetes.server.gateway.subdomain | string | `"argocd"` | See [documentation](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details |
 | argocd_vars.kubernetes.server.resources.limits.cpu | string | `nil` |  |
 | argocd_vars.kubernetes.server.resources.limits.memory | string | `"128Mi"` |  |
 | argocd_vars.kubernetes.server.resources.requests.cpu | string | `"10m"` |  |
