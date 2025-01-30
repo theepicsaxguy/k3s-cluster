@@ -43,7 +43,38 @@
         "ansible.lint.path": "~/.local/bin/ansible-lint",
         "ansible.lint.enabled": true,
         "ansible.lint.rules": "all", // Terminal Defaults to WSL
-        "terminal.integrated.defaultProfile.windows": "WSL"
+        "terminal.integrated.defaultProfile.windows": "WSL",
+        "files.autoSave": "afterDelay",
+        "ansible.executionEnvironment.enabled": false,
+        "ansible.lightspeed.enabled": false,
+        "git.autofetch": true,
+        "git.autoStash": true,
+        "github.copilot.chat.commitMessageGeneration.instructions": [
+            {
+                "text": "Generate a commit message strictly following the Conventional Commits format."
+            },
+            {
+                "text": "Use one of the following prefixes: feat:, fix:, chore:, docs:, style:, refactor:, perf:, test:, ci:, build:, revert:."
+            },
+            {
+                "text": "If the commit affects a specific module, feature, or component, include a scope in parentheses after the type, e.g., 'feat(auth):'."
+            },
+            {
+                "text": "The first line should be concise (max 50 characters), in present tense, imperative mood, and without punctuation at the end."
+            },
+            {
+                "text": "Use present tense and imperative mood, e.g., 'Add authentication', not 'Added' or 'Adds'."
+            },
+            {
+                "text": "Include a detailed description in the commit body, explaining what changed, why, and how, with a maximum line length of 72 characters."
+            },
+            {
+                "text": "If breaking changes exist, include 'BREAKING CHANGE:' in the commit footer, with a detailed explanation."
+            },
+            {
+                "text": "If applicable, reference related issues using 'Fixes: #<issue_number>', 'Closes: #<issue_number>', or 'Related: #<issue_number>'."
+            }
+        ]
     },
     "launch": {
         "version": "0.2.0",
