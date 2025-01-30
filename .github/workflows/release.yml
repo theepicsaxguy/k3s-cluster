@@ -26,5 +26,12 @@ jobs:
       - name: Run standard-version
         run: npm run release
 
-      - name: Push changes
-        run: git push --follow-tags origin main
+      - name: Configure Git Identity
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+      - name: Commit and push changes
+        run: |
+          git add .
+          git commit -m "chore(release): version bump" --no-verify
+          git push --follow-tags origin main
