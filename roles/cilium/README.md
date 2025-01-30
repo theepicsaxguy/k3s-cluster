@@ -2,7 +2,7 @@
 
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 1.16.5](https://img.shields.io/badge/Version-1.16.5-informational?style=flat-square)
 
-The role performs various tasks related to `cilium` [chart](https://github.com/cilium/cilium/tree/v1.16.5/install/kubernetes/cilium) deployment, reset and validation. Review the [documentation](https://axivo.com/k3s-cluster/wiki/guide/configuration/roles/cilium), for additional details.
+The role performs various tasks related to `cilium` [chart](https://github.com/cilium/cilium/tree/v1.16.5/install/kubernetes/cilium) deployment, reset and validation. Review the [documentation](https://theepicsaxguy.com/k3s-cluster/wiki/guide/configuration/roles/cilium), for additional details.
 
 ## Role Dependencies
 
@@ -19,8 +19,8 @@ See the installed role dependencies listed below, defined into [main.yaml](./def
 See the related role variables listed below, defined into [main.yaml](./defaults/main.yaml) defaults file. Advanced user role variables are defined into [facts.yaml](./tasks/facts.yaml) `cilium_map` collection.
 
 > [!TIP]
-> - Use [Renovate](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
-> - Use [Robusta KRR](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
+> - Use [Renovate](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
+> - Use [Robusta KRR](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -70,7 +70,7 @@ See the related role variables listed below, defined into [main.yaml](./defaults
 | cilium_vars.kubernetes.hubble.ui.frontend.resources.requests.cpu | string | `"10m"` |  |
 | cilium_vars.kubernetes.hubble.ui.frontend.resources.requests.memory | string | `"128Mi"` |  |
 | cilium_vars.kubernetes.hubble.ui.gateway.service | string | `"hubble-ui"` |  |
-| cilium_vars.kubernetes.hubble.ui.gateway.subdomain | string | `"hubble"` | See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details |
+| cilium_vars.kubernetes.hubble.ui.gateway.subdomain | string | `"hubble"` | See [documentation](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details |
 | cilium_vars.kubernetes.hubble.ui.replicas | int | `1` | Related to [cilium/cilium#33109](https://github.com/cilium/cilium/issues/33109) |
 | cilium_vars.kubernetes.ingress_controller.service.ip | string | `"10.25.150.20"` | Assign the `CiliumLoadBalancerIPPool` blocks start address |
 | cilium_vars.kubernetes.ip_masq_agent.enabled | bool | `false` |  |

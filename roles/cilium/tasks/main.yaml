@@ -155,6 +155,10 @@
           ansible.builtin.set_fact:
             cilium_setup: false
 
+        - name: Debug before helm install/upgrade
+          debug:
+            msg: "Starting Helm installation for chart: {{ cilium_vars.kubernetes.helm.chart.name }}"
+
         - name: Update chart setup values
           kubernetes.core.helm:
             chart_ref: '{{ cilium_map.helm.chart.reference }}'
@@ -171,6 +175,11 @@
           delay: 1
           retries: 3
           until: result is not failed
+
+        - name: Debug after helm install/upgrade
+          debug:
+            msg: "Helm chart installation result: {{ result }}"
+
 
         - name: Gateway Setup
           when: externaldns_vars.cloudflare.host.domain | lower != 'disabled'

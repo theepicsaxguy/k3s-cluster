@@ -1,15 +1,15 @@
 titleOnly: true
-# See: https://www.conventionalcommits.org
-# Valid types listed below can be overridden
+# Uses Conventional Commits: https://www.conventionalcommits.org/en/v1.0.0/
 types:
-  - build
-  - ci
-  - chore
-  - docs
-  - feat
-  - fix
-  - perf
-  - refactor
-  - revert
-  - style
-  - test
+  - build # Changes to build system or dependencies
+  - chore # Misc. maintenance updates
+  - ci # Changes to CI/CD
+  - docs # Documentation updates
+  - feat # New feature
+  - fix # Bug fix
+  - perf # Performance optimization
+  - refactor # Code restructuring without feature change
+  - revert # Reverting previous commits
+  - style # Formatting changes, no logic updates
+  - test # Adding or updating tests
+  - breaking # Major breaking changes requiring migration

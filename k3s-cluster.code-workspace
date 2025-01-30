@@ -1,0 +1,103 @@
+{
+    "folders": [
+        {
+            "path": ".",
+            "name": "root"
+        },
+        {
+            "path": "roles",
+            "name": "roles"
+        },
+        {
+            "path": "inventory",
+            "name": "inventory"
+        },
+        {
+            "path": "collections",
+            "name": "collections"
+        },
+        {
+            "path": "docs",
+            "name": "documentation"
+        }
+    ],
+    "settings": {
+        "editor.formatOnSave": true,
+        "editor.tabSize": 2,
+        // YAML Linting
+        "yaml.schemas": {
+            "https://json.schemastore.org/ansible-playbook.json": [
+                "/playbooks/*.yaml",
+                "/roles/**/*.yaml"
+            ]
+        },
+        "files.associations": {
+            "*.yaml": "yaml",
+            "*.yml": "yaml",
+            "ansible.cfg": "ini"
+        },
+        // Auto-lint YAML and Python
+        "ansible.python.interpreterPath": "/usr/bin/python3",
+        "python.linting.enabled": true,
+        "python.linting.flake8Enabled": true,
+        "ansible.lint.path": "~/.local/bin/ansible-lint",
+        "ansible.lint.enabled": true,
+        "ansible.lint.rules": "all", // Terminal Defaults to WSL
+        "terminal.integrated.defaultProfile.windows": "WSL"
+    },
+    "launch": {
+        "version": "0.2.0",
+        "configurations": [
+            {
+                "name": "Debug Ansible Playbook",
+                "type": "debugpy",
+                "request": "launch",
+                "program": "/usr/bin/ansible-playbook",
+                "args": [
+                    "${workspaceFolder}/playbooks/provisioning.yaml",
+                    "-vvv"
+                ],
+                "console": "integratedTerminal",
+                "env": {
+                    "ANSIBLE_STDOUT_CALLBACK": "debug"
+                }
+            },
+            {
+                "name": "Debug Python Module",
+                "type": "debugpy",
+                "request": "launch",
+                "program": "${file}",
+                "console": "integratedTerminal"
+            }
+        ]
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "Run Provisioning Playbook",
+                "type": "shell",
+                "command": "wsl ansible-playbook playbooks/provisioning.yaml",
+                "problemMatcher": []
+            },
+            {
+                "label": "Run Playbook in Debug Mode",
+                "type": "shell",
+                "command": "wsl ansible-playbook playbooks/provisioning.yaml -vvv",
+                "problemMatcher": []
+            },
+            {
+                "label": "Lint Playbooks",
+                "type": "shell",
+                "command": "wsl ansible-lint playbooks/*.yaml",
+                "problemMatcher": []
+            },
+            {
+                "label": "Validate Inventory",
+                "type": "shell",
+                "command": "wsl ansible-inventory --list",
+                "problemMatcher": []
+            }
+        ]
+    }
+}

@@ -1,17 +1,28 @@
-## WHY
+## 📌 Why?
 
-<!-- Please include a summary of the changes and any related issues. -->
+<!-- Describe the motivation for this change. Link related issues if applicable. -->
+<!-- Example: Closes #123 -->
 
-## WHAT
+## 🔥 What Changed?
 
-- [ ] Bug fix (non-breaking change which fixes an issue)
-- [ ] New feature (non-breaking change which adds functionality)
-- [ ] Breaking change (fix or feature that would cause existing functionality not working as expected)
-- [ ] This change requires a documentation update
+- [ ] `fix:` Bug fix (non-breaking)
+- [ ] `feat:` New feature (non-breaking)
+- [ ] `chore:` Maintenance or tooling update
+- [ ] `docs:` Documentation changes
+- [ ] `refactor:` Code improvement (no functional changes)
+- [ ] `perf:` Performance optimization
+- [ ] `style:` Code formatting, no logic changes
+- [ ] `test:` Adding or improving tests
+- [ ] `BREAKING CHANGE:` Requires existing functionality to be updated
 
-## HOW
+## ✅ How?
 
-- [ ] My code follows the style guidelines of this project
-- [ ] I have performed a self-review of my code
-- [ ] I have made corresponding changes to the documentation
-- [ ] My changes generate no new issues or warnings
+- [ ] Code follows the **style guide** of this project.
+- [ ] Self-reviewed code for **errors & best practices**.
+- [ ] Changes are **documented** where necessary.
+- [ ] No new **warnings or issues** were introduced.
+- [ ] Tests have been **added or updated** (if applicable).
+
+## 📜 Additional Notes
+
+<!-- Add any extra details, screenshots, or references if needed. -->

@@ -2,15 +2,15 @@
 
 ![Type: application](https://img.shields.io/badge/Type-application-informational?style=flat-square) ![Version: 0.8.14](https://img.shields.io/badge/Version-0.8.14-informational?style=flat-square)
 
-The role performs various tasks related to `victoria-logs-single` [chart](https://github.com/VictoriaMetrics/helm-charts/tree/victoria-logs-single-0.8.14/charts/victoria-logs-single) deployment, reset and validation. Review the [documentation](https://axivo.com/k3s-cluster/wiki/guide/configuration/roles/victorialogs), for additional details.
+The role performs various tasks related to `victoria-logs-single` [chart](https://github.com/VictoriaMetrics/helm-charts/tree/victoria-logs-single-0.8.14/charts/victoria-logs-single) deployment, reset and validation. Review the [documentation](https://theepicsaxguy.com/k3s-cluster/wiki/guide/configuration/roles/victorialogs), for additional details.
 
 ## Role Variables
 
 See the related role variables listed below, defined into [main.yaml](./defaults/main.yaml) defaults file. Advanced user role variables are defined into [facts.yaml](./tasks/facts.yaml) `victorialogs_map` collection.
 
 > [!TIP]
-> - Use [Renovate](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
-> - Use [Robusta KRR](https://axivo.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
+> - Use [Renovate](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#renovate), to automate the release pull requests and keep dependencies up-to-date
+> - Use [Robusta KRR](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/tools/#robusta-krr), to optimize the cluster resources allocation
 
 | Key | Type | Default | Description |
 |-----|------|---------|-------------|
@@ -22,7 +22,7 @@ See the related role variables listed below, defined into [main.yaml](./defaults
 | victorialogs_vars.kubernetes.helm.repository.url | string | `"https://victoriametrics.github.io"` |  |
 | victorialogs_vars.kubernetes.namespace | string | `"kube-system"` |  |
 | victorialogs_vars.kubernetes.server.ingress.enabled | bool | `true` |  |
-| victorialogs_vars.kubernetes.server.ingress.subdomain | string | `"logs"` | See [documentation](https://axivo.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details |
+| victorialogs_vars.kubernetes.server.ingress.subdomain | string | `"logs"` | See [documentation](https://theepicsaxguy.com/k3s-cluster/tutorials/handbook/externaldns/#front-ends), for details |
 | victorialogs_vars.kubernetes.server.log_level | string | `"WARN"` |  |
 | victorialogs_vars.kubernetes.server.replicas | int | `1` |  |
 | victorialogs_vars.kubernetes.server.resources.limits.cpu | string | `nil` |  |
