@@ -32,7 +32,7 @@
             ]
         },
         "files.associations": {
-            "*.yaml": "yaml",
+            "*.yaml": "ansible",
             "*.yml": "yaml",
             "ansible.cfg": "ini"
         },
@@ -49,47 +49,10 @@
         "ansible.lightspeed.enabled": false,
         "git.autofetch": true,
         "git.autoStash": true,
-        "github.copilot.chat.commitMessageGeneration.instructions": [
-            {
-                "text": "Generate a commit message that follows the Conventional Commits format EXACTLY. NO EXCEPTIONS."
-            },
-            {
-                "text": "Use ONLY one of these lowercase prefixes: feat:, fix:, chore:, docs:, style:, refactor:, perf:, test:, ci:, build:, revert:. NO OTHER TYPES. NO CAPITAL LETTERS."
-            },
-            {
-                "text": "ALWAYS include a scope in parentheses after the type. NO EMPTY SCOPES. Example: 'feat(auth):'."
-            },
-            {
-                "text": "The first letter of the subject MUST be uppercase. ALL OTHER WORDS MUST BE lowercase unless they are proper nouns, acronyms, or technical terms. Example: 'Add authentication', 'Fix API request timeout', 'Improve CSS handling'."
-            },
-            {
-                "text": "THE FIRST LINE MUST BE **40 CHARACTERS OR LESS**. If it is too long, CUT IT DOWN. NO EXCEPTIONS."
-            },
-            {
-                "text": "DO NOT end the first line with punctuation. NO periods. NO exclamation marks. NO exceptions."
-            },
-            {
-                "text": "Use PRESENT TENSE and IMPERATIVE MOOD. Example: 'Add authentication', NOT 'Added' or 'Adds'."
-            },
-            {
-                "text": "The commit body MUST exist unless the change is trivial. Wrap lines at **72 CHARACTERS MAX**. NO LONG LINES."
-            },
-            {
-                "text": "If the commit introduces a breaking change, include 'BREAKING CHANGE:' in the footer with a detailed explanation."
-            },
-            {
-                "text": "DO NOT include 'BREAKING CHANGE:' unless it is actually a breaking change."
-            },
-            {
-                "text": "Commit messages MUST be concise, clear, and STRICTLY follow these rules. NO EXCEPTIONS."
-            }
-        ],
         "git.fetchOnPull": true,
         "git.pullBeforeCheckout": true,
         "git.branchRandomName.enable": false,
-        "github.copilot.advanced": {
-            
-        }
+        "github.copilot.advanced": {}
     },
     "launch": {
         "version": "0.2.0",

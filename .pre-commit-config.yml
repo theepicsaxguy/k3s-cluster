@@ -30,6 +30,21 @@ repos:
             "{extends: default, rules: {line-length: {max: 120}, indent: {spaces: 2}}}",
           ]
 
+  - repo: https://github.com/prettier/prettier
+    rev: v2.7.1
+    hooks:
+      - id: prettier
+        name: Prettier (YAML auto-fix)
+        types: [yaml]
+        args: ["--write"]
+
+  - repo: https://github.com/ansible/ansible-lint
+    rev: v5.0.0
+    hooks:
+      - id: ansible-lint
+        name: Ansible Linter
+        types: [yaml]
+
   - repo: https://github.com/instrumenta/helm-lint
     rev: v1.0.0
     hooks:
