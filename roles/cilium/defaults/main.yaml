@@ -148,7 +148,7 @@ cilium_vars:
       repository:
         name: gateway-api
         org: kubernetes-sigs
-      version: v1.2.1
+      version: v1.3.0
     hubble:
       file: hubble-linux-amd64.tar.gz
       repository:
